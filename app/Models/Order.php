@@ -8,6 +8,8 @@ class Order extends Model
 {
     protected $fillable = ['user_id', 'total_price', 'notes'];
 
+    protected $appends = ['status'];
+
     protected function casts(): array
     {
         return ['total_price' => 'decimal:2'];
