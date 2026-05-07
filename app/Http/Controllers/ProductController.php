@@ -28,9 +28,15 @@ class ProductController extends Controller
             'price'       => 'required|numeric|min:0',
             'stock'       => 'required|integer|min:0',
             'unit'        => 'required|string|max:50',
+            'image'       => 'nullable|image|max:2048',
         ]);
 
-        Product::create($request->only('name', 'description', 'price', 'stock', 'unit'));
+        $data = $request->only('name', 'description', 'price', 'stock', 'unit');
+        if ($request->hasFile('image')) {
+            $data['image_url'] = $request->file('image')->store('products', 'public');
+        }
+
+        Product::create($data);
 
         return redirect()->route('products.index');
     }
@@ -48,16 +54,28 @@ class ProductController extends Controller
             'price'       => 'required|numeric|min:0',
             'stock'       => 'required|integer|min:0',
             'unit'        => 'required|string|max:50',
+            'image'       => 'nullable|image|max:2048',
         ]);
 
-        $product->update($request->only('name', 'description', 'price', 'stock', 'unit'));
+        $data = $request->only('name', 'description', 'price', 'stock', 'unit');
+        if ($request->hasFile('image')) {
+            if ($product->image_url) {
+                \Storage::disk('public')->delete($product->image_url);
+            }
+            $data['image_url'] = $request->file('image')->store('products', 'public');
+        }
+
+        $product->update($data);
 
         return redirect()->route('products.index');
     }
 
     public function destroy(Product $product)
     {
-        $product->delete(); // soft delete
+        if ($product->image_url) {
+            \Storage::disk('public')->delete($product->image_url);
+        }
+        $product->delete();
 
         return redirect()->route('products.index');
     }

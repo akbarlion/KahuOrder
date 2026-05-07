@@ -9,6 +9,7 @@ export type Product = {
     price: number;
     stock: number;
     unit: string;
+    image_url: string | null;
 };
 
 export type OrderItem = {
@@ -32,12 +33,12 @@ export type Approval = {
 
 export type Order = {
     id: number;
-    user_id: number;
+    guest_name: string;
+    guest_phone: string;
     total_price: number;
     notes: string | null;
     created_at: string;
     status: 'pending' | 'approved' | 'rejected';
-    user?: import('./auth').User;
     items?: OrderItem[];
     approval?: Approval;
 };

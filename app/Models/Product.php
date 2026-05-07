@@ -9,11 +9,16 @@ class Product extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['name', 'description', 'price', 'stock', 'unit'];
+    protected $fillable = ['name', 'description', 'price', 'stock', 'unit', 'image_url'];
 
     protected function casts(): array
     {
         return ['price' => 'decimal:2'];
+    }
+
+    public function getImageUrlAttribute(?string $value): ?string
+    {
+        return $value ? asset('storage/' . $value) : null;
     }
 
     public function orderItems()

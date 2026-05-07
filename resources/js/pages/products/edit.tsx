@@ -9,12 +9,16 @@ import type { Product } from '@/types';
 
 export default function ProductEdit({ product }: { product: Product }) {
     const { t } = useLocale();
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, post, processing, errors } = useForm<{
+        name: string; description: string; price: string; stock: string; unit: string; image: File | null; _method: string;
+    }>({
         name: product.name,
         description: product.description ?? '',
         price: String(product.price),
         stock: String(product.stock),
         unit: product.unit,
+        image: null,
+        _method: 'PUT',
     });
 
     return (
@@ -24,7 +28,10 @@ export default function ProductEdit({ product }: { product: Product }) {
                 <Card className="mx-auto max-w-lg">
                     <CardHeader><CardTitle>{t('edit_product')}</CardTitle></CardHeader>
                     <CardContent>
-                        <form onSubmit={(e) => { e.preventDefault(); put(`/products/${product.id}`); }} className="space-y-4">
+                        <form
+                            onSubmit={(e) => { e.preventDefault(); post(`/products/${product.id}`, { forceFormData: true }); }}
+                            className="space-y-4"
+                        >
                             <div>
                                 <Label>{t('name')}</Label>
                                 <Input value={data.name} onChange={(e) => setData('name', e.target.value)} />
@@ -50,6 +57,21 @@ export default function ProductEdit({ product }: { product: Product }) {
                                 <Label>{t('unit')}</Label>
                                 <Input value={data.unit} onChange={(e) => setData('unit', e.target.value)} />
                                 <InputError message={errors.unit} />
+                            </div>
+                            <div>
+                                <Label>Gambar (opsional)</Label>
+                                {product.image_url && !data.image && (
+                                    <img src={product.image_url} alt={product.name} className="mb-2 h-24 w-24 rounded object-cover" />
+                                )}
+                                {data.image && (
+                                    <img src={URL.createObjectURL(data.image)} alt="preview" className="mb-2 h-24 w-24 rounded object-cover" />
+                                )}
+                                <Input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => setData('image', e.target.files?.[0] ?? null)}
+                                />
+                                <InputError message={errors.image} />
                             </div>
                             <div className="flex justify-end gap-2">
                                 <Button type="button" variant="outline" onClick={() => history.back()}>{t('cancel')}</Button>

@@ -11,7 +11,7 @@ class ApprovalController extends Controller
 {
     public function index()
     {
-        $orders = Order::with(['user', 'items.product', 'approval'])
+        $orders = Order::with(['items.product', 'approval'])
             ->whereDoesntHave('approval')
             ->latest()
             ->get();

@@ -8,8 +8,10 @@ import { useLocale } from '@/hooks/use-locale';
 
 export default function ProductCreate() {
     const { t } = useLocale();
-    const { data, setData, post, processing, errors } = useForm({
-        name: '', description: '', price: '', stock: '', unit: 'pcs',
+    const { data, setData, post, processing, errors } = useForm<{
+        name: string; description: string; price: string; stock: string; unit: string; image: File | null;
+    }>({
+        name: '', description: '', price: '', stock: '', unit: 'pcs', image: null,
     });
 
     return (
@@ -19,7 +21,10 @@ export default function ProductCreate() {
                 <Card className="mx-auto max-w-lg">
                     <CardHeader><CardTitle>{t('add_product')}</CardTitle></CardHeader>
                     <CardContent>
-                        <form onSubmit={(e) => { e.preventDefault(); post('/products'); }} className="space-y-4">
+                        <form
+                            onSubmit={(e) => { e.preventDefault(); post('/products', { forceFormData: true }); }}
+                            className="space-y-4"
+                        >
                             <div>
                                 <Label>{t('name')}</Label>
                                 <Input value={data.name} onChange={(e) => setData('name', e.target.value)} />
@@ -45,6 +50,15 @@ export default function ProductCreate() {
                                 <Label>{t('unit')}</Label>
                                 <Input value={data.unit} onChange={(e) => setData('unit', e.target.value)} />
                                 <InputError message={errors.unit} />
+                            </div>
+                            <div>
+                                <Label>Gambar (opsional)</Label>
+                                <Input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => setData('image', e.target.files?.[0] ?? null)}
+                                />
+                                <InputError message={errors.image} />
                             </div>
                             <div className="flex justify-end gap-2">
                                 <Button type="button" variant="outline" onClick={() => history.back()}>{t('cancel')}</Button>
