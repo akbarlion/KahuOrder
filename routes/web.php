@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminOrderController;
 use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\CatalogController;
@@ -24,7 +25,7 @@ Route::post('/order', [OrderController::class, 'store'])->name('orders.store');
 Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
 
 // Detail order (pakai kode order)
-Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+Route::get('/orders/{order:public_code}', [OrderController::class, 'show'])->name('orders.show');
 
 // ─── Admin Routes (login required) ───────────────────────────────────────────
 
@@ -34,6 +35,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('can:admin')->group(function () {
         // Products
         Route::resource('products', ProductController::class)->except(['show']);
+
+        // Orders
+        Route::get('admin/orders', [AdminOrderController::class, 'index'])->name('admin.orders.index');
 
         // Banners
         Route::resource('banners', BannerController::class)->except(['show', 'create', 'edit']);
@@ -45,4 +49,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';

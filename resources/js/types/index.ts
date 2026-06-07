@@ -33,6 +33,7 @@ export type Approval = {
 
 export type Order = {
     id: number;
+    public_code: string;
     guest_name: string;
     guest_phone: string;
     total_price: number;

@@ -4,12 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\Approval;
 use App\Models\Order;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class ApprovalController extends Controller
 {
-    public function index()
+    public function index(): Response
     {
         $orders = Order::with(['items.product', 'approval'])
             ->whereDoesntHave('approval')
@@ -19,33 +22,48 @@ class ApprovalController extends Controller
         return Inertia::render('approvals/index', ['orders' => $orders]);
     }
 
-    public function approve(Order $order)
+    public function approve(Order $order): RedirectResponse
     {
-        abort_if($order->approval !== null, 409, 'Order already processed.');
+        DB::transaction(function () use ($order) {
+            $lockedOrder = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
 
-        Approval::create([
-            'order_id'    => $order->id,
-            'approved_by' => auth()->id(),
-            'status'      => 'approved',
-            'approved_at' => now(),
-        ]);
+            abort_if($lockedOrder->approval()->exists(), 409, 'Order already processed.');
+
+            Approval::create([
+                'order_id' => $lockedOrder->id,
+                'approved_by' => auth()->id(),
+                'status' => 'approved',
+                'approved_at' => now(),
+            ]);
+        });
 
         return redirect()->route('approvals.index');
     }
 
-    public function reject(Request $request, Order $order)
+    public function reject(Request $request, Order $order): RedirectResponse
     {
-        abort_if($order->approval !== null, 409, 'Order already processed.');
-
         $request->validate(['note' => 'required|string']);
 
-        Approval::create([
-            'order_id'    => $order->id,
-            'approved_by' => auth()->id(),
-            'status'      => 'rejected',
-            'note'        => $request->note,
-            'approved_at' => now(),
-        ]);
+        DB::transaction(function () use ($request, $order) {
+            $lockedOrder = Order::whereKey($order->id)
+                ->with('items.product')
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            abort_if($lockedOrder->approval()->exists(), 409, 'Order already processed.');
+
+            Approval::create([
+                'order_id' => $lockedOrder->id,
+                'approved_by' => auth()->id(),
+                'status' => 'rejected',
+                'note' => $request->note,
+                'approved_at' => now(),
+            ]);
+
+            foreach ($lockedOrder->items as $item) {
+                $item->product?->increment('stock', $item->qty);
+            }
+        });
 
         return redirect()->route('approvals.index');
     }

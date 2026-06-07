@@ -39,11 +39,21 @@ export function AppSidebar() {
 
     const mainNavItems: NavItem[] = [
         { title: t('dashboard'), href: dashboard(), icon: LayoutGrid },
-        { title: t('orders'), href: '/orders', icon: ShoppingCart },
-        ...(isAdmin ? [
-            { title: t('products'), href: '/products', icon: Package },
-            { title: t('approvals'), href: '/approvals', icon: CheckSquare },
-        ] : []),
+        {
+            title: t('orders'),
+            href: isAdmin ? '/admin/orders' : '/orders',
+            icon: ShoppingCart,
+        },
+        ...(isAdmin
+            ? [
+                  { title: t('products'), href: '/products', icon: Package },
+                  {
+                      title: t('approvals'),
+                      href: '/approvals',
+                      icon: CheckSquare,
+                  },
+              ]
+            : []),
     ];
 
     return (
@@ -69,7 +79,7 @@ export function AppSidebar() {
                 <div className="px-2 py-1">
                     <button
                         onClick={() => setLocale(locale === 'id' ? 'en' : 'id')}
-                        className="text-muted-foreground hover:text-foreground w-full rounded px-2 py-1 text-left text-xs transition-colors"
+                        className="w-full rounded px-2 py-1 text-left text-xs text-muted-foreground transition-colors hover:text-foreground"
                     >
                         🌐 {locale === 'id' ? 'English' : 'Indonesia'}
                     </button>
